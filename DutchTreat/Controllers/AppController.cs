@@ -1,20 +1,25 @@
 ﻿using System;
+using System.Linq;
+using DutchTreat.Data;
 using DutchTreat.Services;
 using DutchTreat.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DutchTreat.Controllers
 {
     public class AppController : Controller
     {
         private readonly IMailService _mailService;
+        private readonly IDutchRepository _repository;
 
-        public AppController(IMailService mailService)
+        public AppController(IMailService mailService, IDutchRepository repository)
         {
+            _repository = repository;
             _mailService = mailService;
         }
         public IActionResult Index()
-        {
+        {            
             return View();
         }
 
@@ -40,6 +45,12 @@ namespace DutchTreat.Controllers
         {
             ViewBag.Title = "About Us";
             return View();
+        }
+
+        public IActionResult Shop()
+        {
+            var results = _repository.GetAllProducts();
+            return View(results);
         }
     }
 }
