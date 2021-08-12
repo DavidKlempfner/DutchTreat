@@ -2,6 +2,7 @@
 using System.Linq;
 using DutchTreat.Data.Entities;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace DutchTreat.Data
 {
@@ -31,6 +32,28 @@ namespace DutchTreat.Data
         public bool SaveAll()
         {
             return _ctx.SaveChanges() > 0;
+        }
+
+        public IEnumerable<Order> GetAllOrders()
+        {
+            return _ctx
+                .Orders
+                .Include(o => o.Items)
+                .ThenInclude(p => p.Product)
+                .ToList();
+        }
+
+        public Order GetOrderById(int id)
+        {
+            return _ctx.Orders
+                .Include(o => o.Items)
+                .ThenInclude(p => p.Product)
+                .SingleOrDefault(o => o.Id == id);
+        }
+
+        public void AddEntity<T>(T model)
+        {
+            _ctx.Add(model);
         }
     }
 }
