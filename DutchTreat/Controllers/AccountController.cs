@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using DutchTreat.Data.Entities;
 using DutchTreat.ViewModels;
@@ -14,12 +14,15 @@ namespace DutchTreat.Controllers
     {
         private readonly ILogger<AccountController> _logger;
         private readonly SignInManager<StoreUser> _signInManager;
+        private readonly UserManager<StoreUser> _userManager;
 
         public AccountController(ILogger<AccountController> logger,
-            SignInManager<StoreUser> signInManager)
+            SignInManager<StoreUser> signInManager,
+            UserManager<StoreUser> userManager)
         {
             _logger = logger;
             _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         public IActionResult Login()
@@ -60,6 +63,28 @@ namespace DutchTreat.Controllers
         {
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "App");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateToken([FromBody] LoginViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByNameAsync(model.Username);
+                if (user != null)
+                {
+                    var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+                    if (result.Succeeded)
+                    {
+                        //Create the token
+                        var claims = new[]
+                        {
+                            new Claim(JwtRegisteredClaimNames)
+                        };
+                    }
+                }
+            }
+            return BadRequest();
         }
     }
 }
