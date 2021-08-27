@@ -34,27 +34,41 @@ namespace DutchTreat.Data
             return _ctx.SaveChanges() > 0;
         }
 
+        public IEnumerable<Order> GetAllOrdersByUser(bool includeItems, string username)
+        {
+            return GetOrders(includeItems, username);
+        }
+
         public IEnumerable<Order> GetAllOrders(bool includeItems)
+        {
+            return GetOrders(includeItems);
+        }
+
+        private IEnumerable<Order> GetOrders(bool includeItems, string username = null)
         {
             if (includeItems)
             {
-                return _ctx
+                var orders = _ctx
                     .Orders
+                    .Where(o => string.IsNullOrEmpty(username) || o.User.UserName == username)
                     .Include(o => o.Items)
                     .ThenInclude(p => p.Product)
+                    .Include(u => u.User)
                     .ToList();
+                return orders;
             }
             return _ctx
                 .Orders
+                .Where(o => string.IsNullOrEmpty(username) || o.User.UserName == username)
                 .ToList();
         }
 
-        public Order GetOrderById(int id)
+        public Order GetOrderById(string username, int id)
         {
             return _ctx.Orders
                 .Include(o => o.Items)
                 .ThenInclude(p => p.Product)
-                .SingleOrDefault(o => o.Id == id);
+                .SingleOrDefault(o => o.Id == id && o.User.UserName == username);
         }
 
         public void AddEntity<T>(T model)
